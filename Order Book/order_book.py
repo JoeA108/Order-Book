@@ -207,19 +207,3 @@ class Book:
 
         return sum(order.quantity for order in levels.get(price, []))
 
-
-book: Book = Book()
-print(book.add_order("bid", "LimitBid1", 50, owner="jta", price=100))
-print(book.add_order("bid", "LimitBid2", 30, owner="icam", price=110))
-print(book.add_order("ask", "LimitAsk1", 40, owner="fes", price=130))
-print(book.add_order("ask", "LimitAsk2", 20, owner="mao", price=135))
-print(book.add_order("bid", "LimitBid3", 80, owner="oxm", price=138))
-print(book.orders_by_id)
-print(book.trade_log)
-
-big_book = Book()
-for i in range(2000):
-    big_book.add_order("ask", f"Ask{i}", 1, owner="icam", price=100 + i)
-big_book.add_order("bid", "BigBuy", 2000, owner="jta", price=None)
-print(len(big_book.trade_log))
-print(big_book.ask_prices)
