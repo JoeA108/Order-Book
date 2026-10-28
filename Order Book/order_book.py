@@ -51,6 +51,10 @@ class Book:
         level = levels[best_price]
         maker = level[0]
 
+        if maker.owner == incoming_order.owner:
+            print(f"Order: {incoming_order.id} cancelled. Self-trade prevented.")
+            return False
+
         if incoming_order.quantity < maker.quantity:
             self.trade_log.append(Trade(price=maker.price, quantity=incoming_order.quantity, maker_id=maker.id, maker_owner=maker.owner, taker_id=incoming_order.id, taker_owner=incoming_order.owner, maker_side=maker.side))
             maker.quantity -= incoming_order.quantity

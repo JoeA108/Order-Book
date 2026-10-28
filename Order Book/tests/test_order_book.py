@@ -183,3 +183,75 @@ def test_best_bid_and_ask():
 
     assert book.best_bid().price == 110
     assert book.best_ask().price == 115
+
+
+def test_self_trade_is_prevented():
+
+    book = Book()
+
+    book.add_order("bid", "LimitBid1", 10, owner="jta", price=100)
+    trades = book.add_order("ask", "LimitAsk1", 10, owner="jta", price=90)
+
+    assert trades == []
+    assert book.trade_log == []
+    assert book.orders_by_id["LimitBid1"].quantity == 10
+    assert book.bid_prices == [100]
+    assert book.ask_prices == []
+    assert "LimitAsk1" not in book.orders_by_id
+
+def test_same_owner_can_quote_both_sides():
+
+    book = Book()
+
+    trades1 = book.add_order("bid", "LimitBid1", 10, owner="jta", price=95)
+    trades2 = book.add_order("ask", "LimitAsk1", 10, owner="jta", price=105)
+
+    assert trades1 == []
+    assert trades2 == []
+    assert book.bid_prices == [95]
+    assert book.ask_prices == [105]
+    assert "LimitBid1" in book.orders_by_id
+    assert "LimitAsk1" in book.orders_by_id
+
+def test_owner_can_still_trade_with_others():
+
+    book = Book()
+    book.add_order("ask", "LimitAsk1", 10, owner="fes", price=100)
+
+    trades = book.add_order("bid", "LimitBid1", 10, owner="jta", price=100)
+
+    assert len(trades) == 1
+    assert trades[0].maker_owner == "fes"
+    assert trades[0].taker_owner == "jta"
+    assert book.ask_prices == []
+    assert "LimitBid1" not in book.orders_by_id
+
+def test_fills_others_then_stops_at_own_order():
+
+    book = Book()
+    book.add_order("ask", "LimitAsk1", 5, owner="fes", price=100)
+    book.add_order("ask", "LimitAsk2", 10, owner="jta", price=101)
+
+    trades = book.add_order("bid", "LimitBid1", 10, owner="jta", price=102)
+
+    assert len(trades) == 1
+    assert trades[0].price == 100
+    assert trades[0].quantity == 5
+    assert trades[0].maker_owner == "fes"
+    assert "LimitBid1" not in book.orders_by_id
+    assert book.bid_prices == []
+    assert book.orders_by_id["LimitAsk2"].quantity == 10
+    assert book.ask_prices == [101]
+
+def test_self_trade_prevented_for_market_orders():
+
+    book = Book()
+    book.add_order("ask", "LimitAsk1", 10, owner="jta", price=101)
+
+    trades = book.add_order("bid", "MarketBid1", 10, owner="jta")
+
+    assert trades == []
+    assert book.trade_log == []
+    assert book.orders_by_id["LimitAsk1"].quantity == 10
+    assert book.ask_prices == [101]
+    assert "MarketBid1" not in book.orders_by_id
