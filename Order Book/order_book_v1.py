@@ -176,12 +176,3 @@ class Book:
                 total_quantity += order.quantity
 
         return total_quantity
-
-
-book: Book = Book()
-book.add_order("bid", "LimitBid1", 50, 100)
-book.add_order("bid", "LimitBid2", 30, 110)
-book.add_order("ask", "LimitAsk1", 40, 130)
-book.add_order("ask", "LimitAsk2", 20, 135)
-book.add_order("bid", "LimitBid3", 80, 138)
-print(book.trade_log)
